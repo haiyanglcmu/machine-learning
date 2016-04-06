@@ -209,4 +209,27 @@ public class Dataset implements Iterable<Instance> {
         }
         return sb.toString();
     }
+
+    public List<Dataset> getFolds(int numFolds) {
+        List<Dataset> folds = new ArrayList<Dataset>();
+        for (int i = 0; i < numFolds; i++) {
+            Dataset dataset = new Dataset();
+            dataset.setAttributeNames(attributeNames);
+            dataset.setAttributeTypes(attributeTypes);
+            folds.add(dataset);
+        }
+        int foldSize = instances.size() / numFolds;
+        for (int i = 0; i < instances.size(); i++) {
+            int foldIndex = i / foldSize;
+            if (foldIndex >= numFolds) foldIndex = numFolds - 1;
+            folds.get(foldIndex).addInstance(instances.get(i));
+        }
+        return folds;
+    }
+
+    public void extend(Dataset dataset) {
+        this.attributeNames = dataset.attributeNames;
+        this.attributeTypes = dataset.attributeTypes;
+        this.instances.addAll(dataset.instances);
+    }
 }

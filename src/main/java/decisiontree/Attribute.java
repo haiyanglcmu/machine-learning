@@ -19,6 +19,7 @@ public class Attribute implements Comparable<Attribute> {
     }
 
     public Attribute(double numericValue) {
+        this.minValue = numericValue;
         this.maxValue = numericValue;
         this.attrType = AttributeType.NUMERIC;
     }
@@ -70,5 +71,32 @@ public class Attribute implements Comparable<Attribute> {
         } else {
             return minValue + ":" + maxValue;
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Attribute attribute = (Attribute) o;
+
+        if (attrType != attribute.attrType) return false;
+
+        if (isNumeric()) {
+            return attribute.maxValue >= minValue && attribute.maxValue <= maxValue;
+        } else {
+            return nominalValue != null ? nominalValue.equals(attribute.nominalValue) : attribute.nominalValue == null;
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        int result;
+        long temp;
+        result = attrType != null ? attrType.hashCode() : 0;
+        result = 31 * result + (nominalValue != null ? nominalValue.hashCode() : 0);
+        temp = Double.doubleToLongBits(maxValue);
+        result = 31 * result + (int) (temp ^ (temp >>> 32));
+        return result;
     }
 }

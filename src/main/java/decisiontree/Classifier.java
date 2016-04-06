@@ -17,7 +17,7 @@ public class Classifier {
         return classify(node, instance);
     }
 
-    private static void test(DecisionTreeNode root, Dataset testSet) {
+    private static double test(DecisionTreeNode root, Dataset testSet) {
         int numCorrect = 0;
         int numError = 0;
         for (Instance inst : testSet) {
@@ -29,9 +29,9 @@ public class Classifier {
             }
         }
         int total = numCorrect + numError;
-        System.out.println("total: " + total);
-        System.out.println("correct: " + ((double) numCorrect / total));
-        System.out.println("error: " + ((double) numError / total));
+        double correctRate = (double) numCorrect / total;
+        System.out.println("correct: " + correctRate);
+        return correctRate;
     }
 
     private static void printTree(DecisionTreeNode root, String indent) {
@@ -48,10 +48,29 @@ public class Classifier {
         }
     }
 
+    private static void crossValidation(int numFolds, Dataset dataset) {
+        List<Dataset> folds = dataset.getFolds(numFolds);
+        double correctRate = 0;
+
+        for (int i = 0; i < numFolds; i++) {
+            Dataset trainSet = new Dataset();
+            Dataset testSet = null;
+            for (int j = 0; j < numFolds; j++) {
+                if (j == i) {
+                    testSet = folds.get(j);
+                } else {
+                    trainSet.extend(folds.get(j));
+                }
+            }
+
+            DecisionTreeNode root = TreeBuilder.createTree(trainSet);
+            correctRate += test(root, testSet);
+        }
+        System.out.println("average: " + correctRate / numFolds);
+    }
+
     public static void main(String[] args) throws FileNotFoundException {
         Dataset ds = DataLoader.load("data/random1");
-        DecisionTreeNode root = TreeBuilder.createTree(ds);
-        printTree(root, "");
-        test(root, ds);
+        crossValidation(10, ds);
     }
 }
