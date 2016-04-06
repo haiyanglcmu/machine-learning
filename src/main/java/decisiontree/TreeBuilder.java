@@ -3,63 +3,96 @@ package decisiontree;
 /**
  * Created by Jackie on 4/4/16.
  */
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 public class TreeBuilder {
 
     private static Double calculateEntropy (Dataset ds) {
         int numInstances = ds.length();
-        Map<Attribute, Integer> classCount = new HashMap<Attribute, Integer>();
+        Map<String, Integer> classCount = new HashMap<String, Integer>();
 
         for (Instance instance : ds) {
-            Attribute f = instance.getClassLabel();
-            if (!classCount.containsKey(f)) {
-                classCount.put(f, 1);
+            String classLabel = instance.getClassLabel();
+            if (!classCount.containsKey(classLabel)) {
+                classCount.put(classLabel, 1);
             } else {
-                classCount.put(f, classCount.get(f) + 1);
+                classCount.put(classLabel, classCount.get(classLabel) + 1);
             }
         }
         double entropy = 0d;
-        for (Map.Entry<Attribute, Integer> entry : classCount.entrySet()) {
+        for (Map.Entry<String, Integer> entry : classCount.entrySet()) {
             double prob = ((double) entry.getValue()) / ((double) numInstances);
             entropy -= prob * (Math.log(prob) / Math.log(2));
         }
         return entropy;
     }
 
+    private static double calculateInfoGain(int datasetLength,
+                                            double baseEntropy,
+                                            Map<Attribute, Dataset> subsets) {
+        double newEntropy = 0.0;
+        for (Dataset subset : subsets.values()) {
+            double prob = (double) subset.length() / datasetLength;
+            newEntropy += prob * calculateEntropy(subset);
+        }
+        return baseEntropy - newEntropy;
+    }
 
-    private static int getBestAttribute(Dataset ds) {
-        int numFeatures = ds.numAttributes();
+    /**
+     * get the name of the best attribute to split the data set
+     */
+    private static Map<String, Map<Attribute, Dataset>> getBestSplit(Dataset ds) {
         double baseEntropy = calculateEntropy(ds);
         double bestInfoGain = 0.0;
-        int bestFeature = -1;
+        String bestAttrName = "";
+        Map<Attribute, Dataset> bestSubsets = null;
 
-        for (int i = 0; i < numFeatures; i++) {
-            List<Dataset> subsets = ds.getSubsets(i);
-            double newEntropy = 0.0;
-            for (Dataset subset : subsets) {
-                double prob = (double) subset.length() / ds.length();
-                newEntropy += prob * calculateEntropy(subset);
-            }
-            double infoGain = baseEntropy - newEntropy;
-            if (infoGain > bestInfoGain) {
-                bestInfoGain = infoGain;
-                bestFeature = i;
+        for (String attrName : ds.getAttributeNames()) {
+            Map<Attribute, Dataset> subsets;
+            if (ds.getAttributeType(attrName).equals(Attribute.AttributeType.NOMINAL)) {
+                subsets = ds.getSubsets(attrName);
+                double infoGain = calculateInfoGain(ds.length(), baseEntropy, subsets);
+                if (infoGain > bestInfoGain) {
+                    bestInfoGain = infoGain;
+                    bestAttrName = attrName;
+                    bestSubsets = subsets;
+                }
+            } else {
+                List<Double> thresholds =  ds.getThresholds(attrName);
+                for (double th : thresholds) {
+                    subsets = ds.getSubsets(attrName, th);
+                    double infoGain = calculateInfoGain(ds.length(), baseEntropy, subsets);
+                    if (infoGain > bestInfoGain) {
+                        bestInfoGain = infoGain;
+                        bestAttrName = attrName;
+                        bestSubsets = subsets;
+                    }
+
+                }
             }
         }
-        return bestFeature;
+        Map<String, Map<Attribute, Dataset>> bestSplit = new HashMap<String, Map<Attribute, Dataset>>();
+        bestSplit.put(bestAttrName, bestSubsets);
+        return bestSplit;
     }
 
     public static DecisionTreeNode createTree(Dataset ds) {
         if (ds.numClassLabels() == 1) {
-            return new DecisionTreeNode(ds.get(0).getClassLabel());
+            return new DecisionTreeNode(ds.get(0).getClassLabel(), true);
         }
         if (ds.numAttributes() == 1) {
-            return ds.majorityClass();
+            String majorityClassLabel = ds.majorityClass();
+            return new DecisionTreeNode(majorityClassLabel, true);
         }
-        int bestAttribute = getBestAttribute(ds);
-        DecisionTreeNode node = new DecisionTreeNode(ds.getAttribute(bestAttribute));
-        for (Dataset dataset : ds.getSubsets(bestAttribute)) {
-            node.addChild(dataset.getSplitCriteria(), createTree(dataset));
+        Map<String, Map<Attribute, Dataset>> bestSplit = getBestSplit(ds);
+        String attrName = bestSplit.keySet().iterator().next();
+
+        DecisionTreeNode node = new DecisionTreeNode(attrName, false);
+        Map<Attribute, Dataset> subsets = bestSplit.get(attrName);
+
+        for (Map.Entry<Attribute, Dataset> subset : subsets.entrySet()) {
+            node.addChild(subset.getKey(), createTree(subset.getValue()));
         }
         return node;
     }
