@@ -5,9 +5,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Created by Haiyang on 4/5/16.
- */
 public class DecisionTreeNode {
     private String attrName;
     private String classLabel;

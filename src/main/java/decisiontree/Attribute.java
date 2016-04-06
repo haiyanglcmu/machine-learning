@@ -1,8 +1,5 @@
 package decisiontree;
 
-/**
- * Created by Haiyang on 4/5/16.
- */
 public class Attribute implements Comparable<Attribute> {
     private AttributeType attrType;
     private String nominalValue;

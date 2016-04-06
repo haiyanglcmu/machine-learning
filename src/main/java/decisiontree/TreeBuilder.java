@@ -1,8 +1,5 @@
 package decisiontree;
 
-/**
- * Created by Jackie on 4/4/16.
- */
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

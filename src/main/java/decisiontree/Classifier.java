@@ -5,9 +5,6 @@ import util.DataLoader;
 import java.io.FileNotFoundException;
 import java.util.List;
 
-/**
- * Created by Jackie on 4/4/16.
- */
 public class Classifier {
     private static String classify(DecisionTreeNode root, Instance instance) {
         DecisionTreeNode node = root.getChild(instance);
@@ -70,7 +67,7 @@ public class Classifier {
     }
 
     public static void main(String[] args) throws FileNotFoundException {
-        Dataset ds = DataLoader.load("data/random1");
+        Dataset ds = DataLoader.load("data/random0");
         crossValidation(10, ds);
     }
 }
