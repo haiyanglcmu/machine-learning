@@ -63,4 +63,12 @@ public class Attribute implements Comparable<Attribute> {
         }
         return 0;
     }
+
+    public String toString() {
+        if (this.attrType.equals(AttributeType.NOMINAL)) {
+            return this.nominalValue;
+        } else {
+            return minValue + ":" + maxValue;
+        }
+    }
 }

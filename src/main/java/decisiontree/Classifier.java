@@ -3,6 +3,7 @@ package decisiontree;
 import util.DataLoader;
 
 import java.io.FileNotFoundException;
+import java.util.List;
 
 /**
  * Created by Jackie on 4/4/16.
@@ -33,9 +34,24 @@ public class Classifier {
         System.out.println("error: " + ((double) numError / total));
     }
 
+    private static void printTree(DecisionTreeNode root, String indent) {
+        if (root.isLeafNode()) {
+            System.out.println(indent + root.getClassLabel());
+            return;
+        }
+
+        System.out.println(indent + root.getAttrName() + ":");
+        List<Attribute> attributes = root.getSplittingCriteria();
+        for (Attribute attr : attributes) {
+            System.out.println(indent + attr);
+            printTree(root.getChild(attr), indent + "  ");
+        }
+    }
+
     public static void main(String[] args) throws FileNotFoundException {
         Dataset ds = DataLoader.load("data/random1");
         DecisionTreeNode root = TreeBuilder.createTree(ds);
+        printTree(root, "");
         test(root, ds);
     }
 }

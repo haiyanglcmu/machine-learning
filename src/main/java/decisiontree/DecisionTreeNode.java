@@ -1,6 +1,8 @@
 package decisiontree;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -33,12 +35,16 @@ public class DecisionTreeNode {
         children.put(splitAttribute, child);
     }
 
+    public DecisionTreeNode getChild(Attribute attribute) {
+        return this.children.get(attribute);
+    }
+
     public DecisionTreeNode getChild(Instance instance) {
         Attribute attr = instance.get(attrName);
         // compare with each splitting criteria
         Attribute splitAttr = null;
         for (Attribute attribute : children.keySet()) {
-            if (attribute.getType().equals(Attribute.AttributeType.NOMINAL)) {
+            if (!attribute.isNumeric()) {
                 if (attribute.getNominalValue().equals(attr.getNominalValue())) {
                     splitAttr = attribute;
                     break;
@@ -55,4 +61,11 @@ public class DecisionTreeNode {
         return children.get(splitAttr);
     }
 
+    public List<Attribute> getSplittingCriteria() {
+        return new ArrayList<Attribute>(this.children.keySet());
+    }
+
+    public String getAttrName() {
+        return attrName;
+    }
 }
