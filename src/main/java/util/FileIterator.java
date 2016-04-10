@@ -1,9 +1,8 @@
 package util;
 
 import java.io.*;
-import java.util.Iterator;
 
-public class FileIterator implements Iterator {
+public class FileIterator {
     private BufferedReader fin;
     private String currentLine;
 

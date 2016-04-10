@@ -1,4 +1,4 @@
-package decisiontree;
+package util;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -16,7 +16,7 @@ public class Instance {
         this.attributes.put(attrName, attr);
     }
 
-    public void addAttribute(String attrName, Double numericValue) {
+    public void setAttribute(String attrName, Double numericValue) {
         Attribute attr = new Attribute(numericValue);
         this.attributes.put(attrName, attr);
     }

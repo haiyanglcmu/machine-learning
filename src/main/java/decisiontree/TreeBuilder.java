@@ -1,5 +1,9 @@
 package decisiontree;
 
+import util.Attribute;
+import util.Dataset;
+import util.Instance;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,7 +45,7 @@ public class TreeBuilder {
      */
     private static Map<String, Map<Attribute, Dataset>> getBestSplit(Dataset ds) {
         double baseEntropy = calculateEntropy(ds);
-        double bestInfoGain = 0.0;
+        double bestInfoGain = Double.NEGATIVE_INFINITY;
         String bestAttrName = "";
         Map<Attribute, Dataset> bestSubsets = null;
 
@@ -65,10 +69,10 @@ public class TreeBuilder {
                         bestAttrName = attrName;
                         bestSubsets = subsets;
                     }
-
                 }
             }
         }
+
         Map<String, Map<Attribute, Dataset>> bestSplit = new HashMap<String, Map<Attribute, Dataset>>();
         bestSplit.put(bestAttrName, bestSubsets);
         return bestSplit;

@@ -1,4 +1,4 @@
-package decisiontree;
+package util;
 
 import java.util.*;
 
@@ -31,8 +31,8 @@ public class Dataset implements Iterable<Instance> {
      */
     public Map<Attribute, Dataset> getSubsets(String attrName, double threshold) {
         Map<Attribute, Dataset> subsets = new HashMap<Attribute, Dataset>();
-        Attribute leftThreshold = new Attribute(Double.MIN_VALUE, threshold);
-        Attribute rightThreshold = new Attribute(threshold, Double.MAX_VALUE);
+        Attribute leftThreshold = new Attribute(Double.NEGATIVE_INFINITY, threshold);
+        Attribute rightThreshold = new Attribute(threshold, Double.POSITIVE_INFINITY);
 
         for (Instance inst : instances) {
             Attribute splitAttribute;
@@ -131,7 +131,7 @@ public class Dataset implements Iterable<Instance> {
             if (type.equals(Attribute.AttributeType.NOMINAL)) {
                 inst.addAttribute(attrName, splits[i]);
             } else {
-                inst.addAttribute(attrName, Double.parseDouble(splits[i]));
+                inst.setAttribute(attrName, Double.parseDouble(splits[i]));
             }
         }
         inst.setClassLabel(splits[splits.length - 1]);
@@ -231,5 +231,85 @@ public class Dataset implements Iterable<Instance> {
         this.attributeNames = dataset.attributeNames;
         this.attributeTypes = dataset.attributeTypes;
         this.instances.addAll(dataset.instances);
+    }
+
+    private double calculateSimilarity(Map<String, SimilarityMatrix> similarities,
+                                       Map<String, Double> weights,
+                                       Instance inst1,
+                                       Instance inst2) {
+        double euclideanDistance = 0;
+        List<String> attributeNames = getAttributeNames();
+        for (String attrName : attributeNames) {
+            double weight = weights.get(attrName);
+            Attribute attr1 = inst1.get(attrName);
+            Attribute attr2 = inst2.get(attrName);
+
+            if (attr1.isNumeric()) {
+                euclideanDistance += weight * Math.pow(attr1.getNumericValue() - attr2.getNumericValue(), 2);
+            } else {
+                SimilarityMatrix matrix = similarities.get(attrName);
+                double sim;
+                if (matrix != null) {
+                    sim = matrix.getSimilarity(attr1.getNominalValue(), attr2.getNominalValue());
+                } else {
+                    sim = attr1.equals(attr2) ? 1 : 0;
+                }
+                euclideanDistance += 1 - sim;
+            }
+        }
+        return 1 / euclideanDistance;
+    }
+
+    public TreeMap<Double, Instance> sortInstances(Instance instance,
+                                             Map<String, SimilarityMatrix> similarities,
+                                             Map<String, Double> weights) {
+        TreeMap<Double, Instance> knn = new TreeMap<Double, Instance>(Collections.<Double>reverseOrder());
+        for (Instance inst : instances) {
+            double sim = calculateSimilarity(similarities, weights, instance, inst);
+            knn.put(sim, inst);
+        }
+
+        return knn;
+    }
+
+    public void normalize() {
+        HashMap<String, Double> attrMinValues = new HashMap<String, Double>();
+        HashMap<String, Double> attrMaxValues = new HashMap<String, Double>();
+
+        for (Instance inst : instances) {
+            for (String attrName : attributeNames) {
+                Attribute attr = inst.get(attrName);
+                if (attr.isNumeric()) {
+                    // update min values
+                    Double oldMin = attrMinValues.get(attrName);
+                    if (oldMin == null) {
+                        attrMinValues.put(attrName, attr.getNumericValue());
+                    } else {
+                        attrMinValues.put(attrName, Math.min(oldMin, attr.getNumericValue()));
+                    }
+
+                    // update max values
+                    Double oldMax = attrMaxValues.get(attrName);
+                    if (oldMax == null) {
+                        attrMaxValues.put(attrName, attr.getNumericValue());
+                    } else {
+                        attrMaxValues.put(attrName, Math.max(oldMax, attr.getNumericValue()));
+                    }
+                }
+            }
+        }
+
+        for (Instance inst : instances) {
+            for (String attrName : attributeNames) {
+                Attribute attr = inst.get(attrName);
+                if (attr.isNumeric()) {
+                    double min = attrMinValues.get(attrName);
+                    double max = attrMaxValues.get(attrName);
+                    double actual = attr.getNumericValue();
+                    double normalizedValue =  (actual - min) / (max - min);
+                    inst.setAttribute(attrName, normalizedValue);
+                }
+            }
+        }
     }
 }

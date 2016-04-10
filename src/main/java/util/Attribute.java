@@ -1,4 +1,4 @@
-package decisiontree;
+package util;
 
 public class Attribute implements Comparable<Attribute> {
     private AttributeType attrType;
@@ -45,7 +45,12 @@ public class Attribute implements Comparable<Attribute> {
 
     public boolean contains(Attribute attr) {
         double value = attr.getNumericValue();
-        return value >= minValue && value <= maxValue;
+        // ensure order
+        if (Double.compare(Double.NEGATIVE_INFINITY, minValue) == 0) {
+            return value > minValue && value <= maxValue;
+        } else {
+            return value > minValue && value < maxValue;
+        }
     }
 
     public int compareTo(Attribute other) {
