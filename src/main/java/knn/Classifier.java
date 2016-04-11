@@ -88,7 +88,7 @@ public class Classifier {
         }
         int total = numCorrect + numError;
         double correctRate = (double) numCorrect / total;
-        // System.out.println("correct: " + correctRate);
+        System.out.println("correct: " + correctRate);
         return correctRate;
     }
 
@@ -113,16 +113,28 @@ public class Classifier {
     }
 
     private static void optimizeWeights() {
-        weights.put("Type", 1.0);
-        weights.put("LifeStyle", 1.0);
-        weights.put("Vacation", 1.0);
-        weights.put("eCredit", 1.0);
-        weights.put("salary", 1.0);
-        weights.put("property", 1.0);
+        // for task a
+        weights.put("Type", 0.03);
+        weights.put("LifeStyle", 0.02);
+        weights.put("Vacation", 0.35);
+        weights.put("eCredit", 1.1);
+        weights.put("salary", 1.7);
+        weights.put("property", 1.9);
+
+        // for task b
+        weights.put("Service_type", 1.0);
+        weights.put("Customer", 1.0);
+        weights.put("Monthly_fee", 1.0);
+        weights.put("Advertisement_budget", 1.0);
+        weights.put("Size", 1.0);
+        weights.put("Promotion", 1.0);
+        weights.put("Interest_rate", 1.0);
+        weights.put("Period", 1.0);
     }
 
     public static void main(String[] args) throws FileNotFoundException {
-        Dataset ds = DataLoader.load("data/random3");
+        Dataset ds = DataLoader.load("data/train.b.shuffled");
+        ds.shuffle();
         ds.normalize();
         optimizeWeights();
         similarities = loadSimilarity("data/similarities");

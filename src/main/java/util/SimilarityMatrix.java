@@ -14,9 +14,10 @@ public class SimilarityMatrix {
     }
 
     public void addSimilarity(String attrValue1, String attrValue2, double sim) {
-        Map<String, Double> map = similarities.get(attrValue2);
+        Map<String, Double> map = similarities.get(attrValue1);
         if (map == null) {
             map = new HashMap<String, Double>();
+            similarities.put(attrValue1, map);
         }
         map.put(attrValue2, sim);
     }

@@ -12,7 +12,7 @@ public class Dataset implements Iterable<Instance> {
     private Map<String, Attribute.AttributeType> attributeTypes =
             new HashMap<String, Attribute.AttributeType>();
 
-    private Map<String, Integer> classLabelCount = new HashMap<String, Integer>();
+    // private Map<String, Integer> classLabelCount = new HashMap<String, Integer>();
 
     public int length() {
         return this.instances.size();
@@ -112,13 +112,13 @@ public class Dataset implements Iterable<Instance> {
 
     public void addInstance(Instance instance) {
         this.instances.add(instance);
-        String classLabel = instance.getClassLabel();
-        Integer count = this.classLabelCount.get(classLabel);
-        if (count == null) {
-            this.classLabelCount.put(classLabel, 1);
-        } else {
-            this.classLabelCount.put(classLabel, count + 1);
-        }
+//        String classLabel = instance.getClassLabel();
+//        Integer count = this.classLabelCount.get(classLabel);
+//        if (count == null) {
+//            this.classLabelCount.put(classLabel, 1);
+//        } else {
+//            this.classLabelCount.put(classLabel, count + 1);
+//        }
     }
 
     public void addInstance(String line) {
@@ -167,7 +167,12 @@ public class Dataset implements Iterable<Instance> {
     }
 
     public int numClassLabels() {
-        return this.classLabelCount.keySet().size();
+        Set<String> classLabels = new HashSet<String>();
+        for (Instance instance : instances) {
+            String classLabel = instance.getClassLabel();
+            classLabels.add(classLabel);
+        }
+        return classLabels.size();
     }
 
     public int numAttributes() {
@@ -175,6 +180,17 @@ public class Dataset implements Iterable<Instance> {
     }
 
     public String majorityClass() {
+        Map<String, Integer> classLabelCount = new HashMap<String, Integer>();
+        for (Instance instance : instances) {
+            String classLabel = instance.getClassLabel();
+            Integer count = classLabelCount.get(classLabel);
+            if (count == null) {
+                classLabelCount.put(classLabel, 1);
+            } else {
+                classLabelCount.put(classLabel, count + 1);
+            }
+        }
+
         int majorityCount = Integer.MIN_VALUE;
         String majorityClassLabel = null;
         for (Map.Entry<String, Integer> entry : classLabelCount.entrySet()) {
@@ -254,10 +270,10 @@ public class Dataset implements Iterable<Instance> {
                 } else {
                     sim = attr1.equals(attr2) ? 1 : 0;
                 }
-                euclideanDistance += 1 - sim;
+                euclideanDistance += weight * (1 - sim);
             }
         }
-        return 1 / euclideanDistance;
+        return 1 / Math.sqrt(euclideanDistance);
     }
 
     public TreeMap<Double, Instance> sortInstances(Instance instance,
@@ -311,5 +327,9 @@ public class Dataset implements Iterable<Instance> {
                 }
             }
         }
+    }
+
+    public void shuffle() {
+        Collections.shuffle(this.instances);
     }
 }
